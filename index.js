@@ -35,8 +35,7 @@ const asyncStore = async (store, renderProps) => {
 
 }
 
-function renderHtml (html, state) {
-    // console.log(html)
+function renderHtml (html, state, template) {
 
     // 样式处理
     let htmlObj = filterStyle(html)
@@ -55,14 +54,14 @@ function renderHtml (html, state) {
         }
     }
 
-    let template = `
+    if(template === undefined) template = `
         <!DOCTYPE html>
         <html lang="en">
 
         <head>
             <meta charset="UTF-8">
             <title>React Template</title>
-            ${styles}
+            <script>//inject_component_styles</script>
         </head>
 
         <body>
@@ -89,6 +88,7 @@ function renderHtml (html, state) {
 
     // 返回给浏览器的html
     const responseHtml = template
+        .replace('<script>//inject_component_styles</script>', styles)
         .replace('<script>//inject_html</script>', html)
         .replace('<script>//inject_redux_state</script>', reduxState)
         .replace('<script>//inject_js</script>', jsLink)
@@ -97,8 +97,7 @@ function renderHtml (html, state) {
 }
 
 
-module.exports = function (routes, configStore) {
-    // console.log(JSON.stringify(routes))
+module.exports = function (routes, configStore, template) {
 
     return async (ctx, next) => {
         try {
@@ -108,16 +107,15 @@ module.exports = function (routes, configStore) {
             const { redirectLocation, renderProps } = await asyncMatch({ history, routes, location: ctx.url })
 
             if (redirectLocation) {
-
                 ctx.redirect(redirectLocation.pathname + redirectLocation.search)
             } else if (renderProps) {
-
                 await asyncStore(store, renderProps)
-
                 ctx.body = renderHtml(
                     renderToString(
                         <Provider store={store}><RouterContext {...renderProps} /></Provider>
-                    ), store.getState()
+                    ), 
+                    store.getState(),
+                    template
                 )
             } else {
                 await next()
