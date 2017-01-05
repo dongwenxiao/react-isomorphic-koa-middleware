@@ -36,6 +36,24 @@ const asyncStore = async (store, renderProps) => {
 }
 
 function renderHtml (html, state) {
+    // console.log(html)
+
+    // 样式处理
+    let htmlObj = filterStyle(html)
+    html = htmlObj.html
+    let styles = htmlObj.styles
+    function filterStyle(htmlString) {
+        let styleCollectionString = htmlString.replace(/\n/gi,'').match(/<div id="styleCollection(.*?)>(.*?)<\/div>/gi)[0]
+
+        // 去掉 <div id="styleCollection">...</div>
+        let onlyStyle = styleCollectionString.substr(styleCollectionString.indexOf('>') + 1, styleCollectionString.length)
+        onlyStyle = onlyStyle.substr(0, onlyStyle.length-6)
+        
+        return {
+            html: htmlString.replace(/\n/gi,'').replace(styleCollectionString, ''),
+            styles: onlyStyle
+        }
+    }
 
     let template = `
         <!DOCTYPE html>
@@ -44,6 +62,7 @@ function renderHtml (html, state) {
         <head>
             <meta charset="UTF-8">
             <title>React Template</title>
+            ${styles}
         </head>
 
         <body>
