@@ -17,21 +17,21 @@ const asyncMatch = (location) => new Promise((resolve, reject) => {
 
 const asyncStore = async (store, renderProps) => {
     
-    let prefetchTasks = []
+    let preprocessTasks = []
     for (let component of renderProps.components) {
 
         // component.WrappedComponent 是redux装饰的外壳
-        if (component && component.WrappedComponent && component.WrappedComponent.fetch) {
-            const _tasks = component.WrappedComponent.fetch(store.getState(), store.dispatch)
-            if (Array.isArray(_tasks)) {
-                prefetchTasks = prefetchTasks.concat(_tasks)
-            } else if (_tasks.then) {
-                prefetchTasks.push(_tasks)
+        if (component && component.WrappedComponent && component.WrappedComponent.preprocess) {
+            const preTasks = component.WrappedComponent.preprocess(store.getState(), store.dispatch)
+            if (Array.isArray(preTasks)) {
+                preprocessTasks = preprocessTasks.concat(preTasks)
+            } else if (preTasks.then) {
+                preprocessTasks.push(preTasks)
             }
         }
     }
 
-    await Promise.all(prefetchTasks)
+    await Promise.all(preprocessTasks)
 
 }
 
