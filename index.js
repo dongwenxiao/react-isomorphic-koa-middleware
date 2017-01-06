@@ -42,7 +42,7 @@ function renderHtml (html, state, template) {
     html = htmlObj.html
     let styles = htmlObj.styles
     function filterStyle(htmlString) {
-        let styleCollectionString = htmlString.replace(/\n/gi,'').match(/<div id="styleCollection(.*?)>(.*?)<\/div>/gi)[0]
+        let styleCollectionString = htmlString.replace(/\r\n/gi, '').replace(/\n/gi,'').match(/<div id="styleCollection(.*?)>(.*?)<\/div>/gi)[0]
 
         // 去掉 <div id="styleCollection">...</div>
         let onlyStyle = styleCollectionString.substr(styleCollectionString.indexOf('>') + 1, styleCollectionString.length)
