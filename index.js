@@ -3,6 +3,12 @@ import { renderToString } from 'react-dom/server'
 import { createMemoryHistory, RouterContext, match } from 'react-router'
 import { Provider } from 'react-redux'
 import { syncHistoryWithStore } from 'react-router-redux'
+
+
+// 客户端开发环境webpack-dev-server端口号
+const argv = require('yargs').argv
+const CLIENT_DEV_PORT = argv.cport ? argv.cport : 3001
+
 //
 
 const asyncMatch = (location) => new Promise((resolve, reject) => {
@@ -82,7 +88,7 @@ function renderHtml (html, state, template) {
 
     // 跟进环境，注入的js链接
     const jsLink = ((isDev) => {
-        if (isDev) return '<script src="http://localhost:3001/dist/client.js"></script>'
+        if (isDev) return `<script src="http://localhost:${CLIENT_DEV_PORT}/dist/client.js"></script>`
         else return '<script src="/client/client.js"></script>'
     })(__DEV__)
 
