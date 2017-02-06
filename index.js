@@ -103,7 +103,7 @@ function renderHtml (html, state, template) {
 }
 
 
-module.exports = function (routes, configStore, template) {
+export default function (routes, configStore, template) {
 
     return async (ctx, next) => {
         try {
