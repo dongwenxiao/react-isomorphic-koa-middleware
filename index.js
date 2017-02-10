@@ -22,7 +22,7 @@ const asyncMatch = (location) => new Promise((resolve, reject) => {
 })
 
 const asyncStore = async (store, renderProps) => {
-    
+
     let preprocessTasks = []
     for (let component of renderProps.components) {
 
@@ -41,26 +41,26 @@ const asyncStore = async (store, renderProps) => {
 
 }
 
-function renderHtml (html, state, template) {
+function renderHtml(html, state, template) {
 
     // 样式处理
     let htmlObj = filterStyle(html)
     html = htmlObj.html
     let styles = htmlObj.styles
     function filterStyle(htmlString) {
-        let styleCollectionString = htmlString.replace(/\r\n/gi, '').replace(/\n/gi,'').match(/<div id="styleCollection(.*?)>(.*?)<\/div>/gi)[0]
+        let styleCollectionString = htmlString.replace(/\r\n/gi, '').replace(/\n/gi, '').match(/<div id="styleCollection(.*?)>(.*?)<\/div>/gi)[0]
 
         // 去掉 <div id="styleCollection">...</div>
         let onlyStyle = styleCollectionString.substr(styleCollectionString.indexOf('>') + 1, styleCollectionString.length)
-        onlyStyle = onlyStyle.substr(0, onlyStyle.length-6)
-        
+        onlyStyle = onlyStyle.substr(0, onlyStyle.length - 6)
+
         return {
-            html: htmlString.replace(/\n/gi,'').replace(styleCollectionString, ''),
+            html: htmlString.replace(/\n/gi, '').replace(styleCollectionString, ''),
             styles: onlyStyle
         }
     }
 
-    if(template === undefined) template = `
+    if (template === undefined) {template = `
         <!DOCTYPE html>
         <html lang="en">
 
@@ -81,7 +81,7 @@ function renderHtml (html, state, template) {
         </body>
 
         </html>
-    `
+    `}
 
     // 序列化的redux状态
     const reduxState = `<script>window.__REDUX_STATE__ = ${JSON.stringify(state)};</script>`
@@ -103,7 +103,7 @@ function renderHtml (html, state, template) {
 }
 
 
-export default function (routes, configStore, template) {
+export default function(routes, configStore, template) {
 
     return async (ctx, next) => {
         try {
@@ -119,7 +119,7 @@ export default function (routes, configStore, template) {
                 ctx.body = renderHtml(
                     renderToString(
                         <Provider store={store}><RouterContext {...renderProps} /></Provider>
-                    ), 
+                    ),
                     store.getState(),
                     template
                 )
