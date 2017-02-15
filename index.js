@@ -41,7 +41,7 @@ const asyncStore = async (store, renderProps) => {
 
 }
 
-function renderHtml(html, state, template) {
+function renderHtml(html, state, template, distPathName = 'dist') {
 
     // 样式处理
     let htmlObj = filterStyle(html)
@@ -88,7 +88,7 @@ function renderHtml(html, state, template) {
 
     // 跟进环境，注入的js链接
     const jsLink = ((isDev) => {
-        if (isDev) return `<script src="http://localhost:${CLIENT_DEV_PORT}/dist/client.js"></script>`
+        if (isDev) return `<script src="http://localhost:${CLIENT_DEV_PORT}/${distPathName}/client.js"></script>`
         else return '<script src="/client/client.js"></script>'
     })(__DEV__)
 
@@ -103,7 +103,7 @@ function renderHtml(html, state, template) {
 }
 
 
-export default function(routes, configStore, template) {
+export default function(routes, configStore, template, distPathName) {
 
     return async (ctx, next) => {
         try {
@@ -121,7 +121,8 @@ export default function(routes, configStore, template) {
                         <Provider store={store}><RouterContext {...renderProps} /></Provider>
                     ),
                     store.getState(),
-                    template
+                    template,
+                    distPathName
                 )
             } else {
                 await next()
