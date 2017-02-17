@@ -12,7 +12,7 @@ const CLIENT_DEV_DEFAULT_PORT = 3001
 const CLIENT_DEV_PORT = argv.cport ? argv.cport : CLIENT_DEV_DEFAULT_PORT
 
 // html扩展用的临时变量
-let htmlExtends
+let htmlExtends = resetHtmlExtends()
 function resetHtmlExtends() {
     return {
         meta: []
@@ -33,7 +33,6 @@ const asyncMatch = (location) => new Promise((resolve, reject) => {
 })
 
 
-
 const asyncStore = async (store, renderProps) => {
 
     let preprocessTasks = []
@@ -43,20 +42,12 @@ const asyncStore = async (store, renderProps) => {
         if (component && component.WrappedComponent && component.WrappedComponent.preprocess) {
 
             // 预处理异步数据的
-            // if () {
             const preTasks = component.WrappedComponent.preprocess(store.getState(), store.dispatch)
             if (Array.isArray(preTasks)) {
                 preprocessTasks = preprocessTasks.concat(preTasks)
             } else if (preTasks.then) {
                 preprocessTasks.push(preTasks)
             }
-            // }
-
-            // 预处理html扩展
-            // if (component.WrappedComponent.htmlExtends) {
-            //     htmlExtends = resetHtmlExtends()
-            //     component.WrappedComponent.htmlExtends(htmlExtends)
-            // }
         }
     }
 
