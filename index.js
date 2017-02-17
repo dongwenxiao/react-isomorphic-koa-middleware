@@ -40,28 +40,37 @@ const asyncStore = async (store, renderProps) => {
     for (let component of renderProps.components) {
 
         // component.WrappedComponent 是redux装饰的外壳
-        if (component && component.WrappedComponent) {
+        if (component && component.WrappedComponent && component.WrappedComponent.preprocess) {
 
             // 预处理异步数据的
-            if (component.WrappedComponent.preprocess) {
-                const preTasks = component.WrappedComponent.preprocess(store.getState(), store.dispatch)
-                if (Array.isArray(preTasks)) {
-                    preprocessTasks = preprocessTasks.concat(preTasks)
-                } else if (preTasks.then) {
-                    preprocessTasks.push(preTasks)
-                }
+            // if () {
+            const preTasks = component.WrappedComponent.preprocess(store.getState(), store.dispatch)
+            if (Array.isArray(preTasks)) {
+                preprocessTasks = preprocessTasks.concat(preTasks)
+            } else if (preTasks.then) {
+                preprocessTasks.push(preTasks)
             }
+            // }
 
             // 预处理html扩展
-            if (component.WrappedComponent.htmlExtends) {
-                htmlExtends = resetHtmlExtends()
-                component.WrappedComponent.htmlExtends(htmlExtends)
-            }
+            // if (component.WrappedComponent.htmlExtends) {
+            //     htmlExtends = resetHtmlExtends()
+            //     component.WrappedComponent.htmlExtends(htmlExtends)
+            // }
         }
     }
 
     await Promise.all(preprocessTasks)
 
+}
+
+const extendHtml = (store, renderProps) => {
+    for (let component of renderProps.components) {
+        if (component && component.WrappedComponent && component.WrappedComponent.htmlExtends) {
+            htmlExtends = resetHtmlExtends()
+            component.WrappedComponent.htmlExtends(htmlExtends, store)
+        }
+    }
 }
 
 /**
@@ -165,12 +174,15 @@ export default function (routes, configStore, template, distPathName) {
                 ctx.redirect(redirectLocation.pathname + redirectLocation.search)
             } else if (renderProps) {
 
-                // 准备预处理数据到store中
-                await asyncStore(store, renderProps)
-
                 // 准备语言到store中
                 let lang = ctx.header['accept-language']
                 store.dispatch({ type: CHANGE_LANGUAGE, data: lang })
+
+                // 准备预处理数据到store中
+                await asyncStore(store, renderProps)
+
+                // 从react里处理并扩展到html
+                extendHtml(store, renderProps)
 
                 ctx.body = renderHtml(
                     renderToString(
