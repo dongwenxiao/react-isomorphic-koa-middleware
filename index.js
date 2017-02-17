@@ -11,6 +11,15 @@ const argv = require('yargs').argv
 const CLIENT_DEV_DEFAULT_PORT = 3001
 const CLIENT_DEV_PORT = argv.cport ? argv.cport : CLIENT_DEV_DEFAULT_PORT
 
+// html扩展用的临时变量
+let htmlExtends
+function resetHtmlExtends() {
+    return {
+        meta: []
+    }
+}
+
+
 //
 
 const asyncMatch = (location) => new Promise((resolve, reject) => {
@@ -23,18 +32,30 @@ const asyncMatch = (location) => new Promise((resolve, reject) => {
     })
 })
 
+
+
 const asyncStore = async (store, renderProps) => {
 
     let preprocessTasks = []
     for (let component of renderProps.components) {
 
         // component.WrappedComponent 是redux装饰的外壳
-        if (component && component.WrappedComponent && component.WrappedComponent.preprocess) {
-            const preTasks = component.WrappedComponent.preprocess(store.getState(), store.dispatch)
-            if (Array.isArray(preTasks)) {
-                preprocessTasks = preprocessTasks.concat(preTasks)
-            } else if (preTasks.then) {
-                preprocessTasks.push(preTasks)
+        if (component && component.WrappedComponent) {
+
+            // 预处理异步数据的
+            if (component.WrappedComponent.preprocess) {
+                const preTasks = component.WrappedComponent.preprocess(store.getState(), store.dispatch)
+                if (Array.isArray(preTasks)) {
+                    preprocessTasks = preprocessTasks.concat(preTasks)
+                } else if (preTasks.then) {
+                    preprocessTasks.push(preTasks)
+                }
+            }
+
+            // 预处理html扩展
+            if (component.WrappedComponent.htmlExtends) {
+                htmlExtends = resetHtmlExtends()
+                component.WrappedComponent.htmlExtends(htmlExtends)
             }
         }
     }
@@ -58,6 +79,18 @@ function renderHtml(html, state, template, distPathName = 'dist') {
     let htmlObj = filterStyle(html)
     html = htmlObj.html
     let styles = htmlObj.styles
+
+    // header 的 meta 生成
+    let metas = htmlExtends.meta.map((meta) => {
+        let metaStr = '<meta'
+        for (var key in meta) {
+            metaStr += ` ${key}="${meta[key]}"`
+        }
+        metaStr += '>'
+        return metaStr
+    }).join('')
+
+
     function filterStyle(htmlString) {
         let styleCollectionString = htmlString.replace(/\r\n/gi, '').replace(/\n/gi, '').match(/<div id="styleCollection(.*?)>(.*?)<\/div>/gi)[0]
 
@@ -78,6 +111,7 @@ function renderHtml(html, state, template, distPathName = 'dist') {
 
             <head>
                 <meta charset="UTF-8">
+                <script>//inject_meta</script>
                 <title>React Template</title>
                 <script>//inject_component_styles</script>
             </head>
@@ -108,6 +142,7 @@ function renderHtml(html, state, template, distPathName = 'dist') {
     // 返回给浏览器的html
     const responseHtml = template
         .replace('<script>//inject_component_styles</script>', styles)
+        .replace('<script>//inject_meta</script>', metas)
         .replace('<script>//inject_html</script>', html)
         .replace('<script>//inject_redux_state</script>', reduxState)
         .replace('<script>//inject_js</script>', jsLink)
@@ -116,7 +151,7 @@ function renderHtml(html, state, template, distPathName = 'dist') {
 }
 
 
-export default function(routes, configStore, template, distPathName) {
+export default function (routes, configStore, template, distPathName) {
 
     return async (ctx, next) => {
 
@@ -135,11 +170,13 @@ export default function(routes, configStore, template, distPathName) {
 
                 // 准备语言到store中
                 let lang = ctx.header['accept-language']
-                store.dispatch({type: CHANGE_LANGUAGE, data: lang})
+                store.dispatch({ type: CHANGE_LANGUAGE, data: lang })
 
                 ctx.body = renderHtml(
                     renderToString(
-                        <Provider store={store}><RouterContext {...renderProps} /></Provider>
+                        <Provider store={store}>
+                            <RouterContext {...renderProps } />
+                        </Provider >
                     ),
                     store.getState(),
                     template,
