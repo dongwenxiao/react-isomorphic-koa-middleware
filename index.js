@@ -3,11 +3,13 @@ import { renderToString } from 'react-dom/server'
 import { createMemoryHistory, RouterContext, match } from 'react-router'
 import { Provider } from 'react-redux'
 import { syncHistoryWithStore } from 'react-router-redux'
+import { CHANGE_LANGUAGE } from 'sp-base/client'
 
 
 // 客户端开发环境webpack-dev-server端口号
 const argv = require('yargs').argv
-const CLIENT_DEV_PORT = argv.cport ? argv.cport : 3001
+const CLIENT_DEV_DEFAULT_PORT = 3001
+const CLIENT_DEV_PORT = argv.cport ? argv.cport : CLIENT_DEV_DEFAULT_PORT
 
 //
 
@@ -41,6 +43,15 @@ const asyncStore = async (store, renderProps) => {
 
 }
 
+/**
+ * 合成返回给浏览器的完整html代码
+ *
+ * @param {any} react渲染的html
+ * @param {any} state 处理后的redux默认状态
+ * @param {any} template html模板
+ * @param {string} [distPathName='dist'] 引用js中间目录名，多项目可配置不同目录
+ * @returns 最终返回浏览器的html
+ */
 function renderHtml(html, state, template, distPathName = 'dist') {
 
     // 样式处理
@@ -60,28 +71,30 @@ function renderHtml(html, state, template, distPathName = 'dist') {
         }
     }
 
-    if (template === undefined) {template = `
-        <!DOCTYPE html>
-        <html lang="en">
+    if (template === undefined) {
+        template = `
+            <!DOCTYPE html>
+            <html lang="en">
 
-        <head>
-            <meta charset="UTF-8">
-            <title>React Template</title>
-            <script>//inject_component_styles</script>
-        </head>
+            <head>
+                <meta charset="UTF-8">
+                <title>React Template</title>
+                <script>//inject_component_styles</script>
+            </head>
 
-        <body>
-            <div id="root">
-                <div><script>//inject_html</script></div>
-            </div>
+            <body>
+                <div id="root">
+                    <div><script>//inject_html</script></div>
+                </div>
 
-            <script>//inject_redux_state</script>
-            <script>//inject_js</script>
+                <script>//inject_redux_state</script>
+                <script>//inject_js</script>
 
-        </body>
+            </body>
 
-        </html>
-    `}
+            </html>
+        `
+    }
 
     // 序列化的redux状态
     const reduxState = `<script>window.__REDUX_STATE__ = ${JSON.stringify(state)};</script>`
@@ -106,6 +119,7 @@ function renderHtml(html, state, template, distPathName = 'dist') {
 export default function(routes, configStore, template, distPathName) {
 
     return async (ctx, next) => {
+
         try {
             const memoryHistory = createMemoryHistory(ctx.url)
             const store = configStore(memoryHistory)
@@ -115,7 +129,14 @@ export default function(routes, configStore, template, distPathName) {
             if (redirectLocation) {
                 ctx.redirect(redirectLocation.pathname + redirectLocation.search)
             } else if (renderProps) {
+
+                // 准备预处理数据到store中
                 await asyncStore(store, renderProps)
+
+                // 准备语言到store中
+                let lang = ctx.header['accept-language']
+                store.dispatch({type: CHANGE_LANGUAGE, data: lang})
+
                 ctx.body = renderHtml(
                     renderToString(
                         <Provider store={store}><RouterContext {...renderProps} /></Provider>
