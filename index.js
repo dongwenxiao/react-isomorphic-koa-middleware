@@ -183,9 +183,9 @@ export default function (routes, configStore, template, distPathName) {
 
                 store.dispatch({ type: CHANGE_LANGUAGE, data: lang })
 
-                // 告诉CDN缓存用的lang
-                ctx.set('Content-Language', lang)
-                ctx.set('Vary', 'Accept-Language, Accept-Encoding')
+                // 告诉浏览器用的lang
+                // ctx.set('Content-Language', lang)
+                // ctx.set('Vary', 'Accept-Language, Accept-Encoding')
 
                 // 准备预处理数据到store中
                 await asyncStore(store, renderProps)
