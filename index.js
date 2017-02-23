@@ -166,8 +166,26 @@ export default function (routes, configStore, template, distPathName) {
             } else if (renderProps) {
 
                 // 准备语言到store中
-                let lang = ctx.header['accept-language']
+
+                // 先查看URL参数是否有语音设置
+                // hl 这个参数名是参考了Instargram
+                let lang = ctx.query.hl
+
+                // 如果没有，再看header里是否有语言设置
+                if (!lang) {
+                    lang = ctx.header['accept-language']
+                }
+
+                // 如没有，再用默认
+                if (!lang) {
+                    lang = 'en'
+                }
+
                 store.dispatch({ type: CHANGE_LANGUAGE, data: lang })
+
+                // 告诉CDN缓存用的lang
+                ctx.set('Content-Language', lang)
+                ctx.set('Vary', 'Accept-Language, Accept-Encoding')
 
                 // 准备预处理数据到store中
                 await asyncStore(store, renderProps)
