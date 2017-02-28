@@ -73,7 +73,7 @@ const extendHtml = (store, renderProps) => {
  * @param {string} [distPathName='dist'] 引用js中间目录名，多项目可配置不同目录
  * @returns 最终返回浏览器的html
  */
-function renderHtml(html, state, template, distPathName = 'dist') {
+function renderHtml(html, state, template, distPathName = 'dist', fnJsLink) {
 
     // 样式处理
     let htmlObj = filterStyle(html)
@@ -134,10 +134,16 @@ function renderHtml(html, state, template, distPathName = 'dist') {
     const reduxState = `<script>window.__REDUX_STATE__ = ${JSON.stringify(state)};</script>`
 
     // 跟进环境，注入的js链接
+    if (typeof fnJsLink === 'undefined')
+        fnJsLink = (uri, entryName = 'client') => `<script src="${url}${entryName}.js"></script>`
     const jsLink = ((isDev) => {
-        if (isDev) return `<script src="http://localhost:${CLIENT_DEV_PORT}/${distPathName}/client.js"></script>`
-        else return '<script src="/client/client.js"></script>'
+        if (isDev) return fnJsLink(`http://localhost:${CLIENT_DEV_PORT}/${distPathName}/`, 'client')
+        else return fnJsLink("/client/", 'client')
     })(__DEV__)
+    // const jsLink = ((isDev) => {
+    //     if (isDev) return `<script src="http://localhost:${CLIENT_DEV_PORT}/${distPathName}/client.js"></script>`
+    //     else return '<script src="/client/client.js"></script>'
+    // })(__DEV__)
 
     // 返回给浏览器的html
     const responseHtml = template
@@ -151,7 +157,7 @@ function renderHtml(html, state, template, distPathName = 'dist') {
 }
 
 
-export default function (routes, configStore, template, distPathName) {
+export default function (routes, configStore, template, distPathName, fnJsLink) {
 
     return async (ctx, next) => {
 
@@ -201,7 +207,8 @@ export default function (routes, configStore, template, distPathName) {
                     ),
                     store.getState(),
                     template,
-                    distPathName
+                    distPathName,
+                    fnJsLink
                 )
             } else {
                 await next()
