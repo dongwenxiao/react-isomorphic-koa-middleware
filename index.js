@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server'
 import { createMemoryHistory, RouterContext, match } from 'react-router'
 import { Provider } from 'react-redux'
 import { syncHistoryWithStore } from 'react-router-redux'
-import { CHANGE_LANGUAGE } from 'sp-base/client'
+import { CHANGE_LANGUAGE, TELL_ME_URL } from 'sp-base/client'
 
 
 // 客户端开发环境webpack-dev-server端口号
@@ -135,7 +135,7 @@ function renderHtml(html, state, template, distPathName = 'dist', fnJsLink) {
 
     // 跟进环境，注入的js链接
     if (typeof fnJsLink === 'undefined')
-        fnJsLink = (uri, entryName = 'client') => `<script src="${url}${entryName}.js"></script>`
+        fnJsLink = (url, entryName = 'client') => `<script src="${url}${entryName}.js"></script>`
     const jsLink = ((isDev) => {
         if (isDev) return fnJsLink(`http://localhost:${CLIENT_DEV_PORT}/${distPathName}/`, 'client')
         else return fnJsLink("/client/", 'client')
@@ -188,6 +188,7 @@ export default function (routes, configStore, template, distPathName, fnJsLink) 
                 }
 
                 store.dispatch({ type: CHANGE_LANGUAGE, data: lang })
+                store.dispatch({ type: TELL_ME_URL, data: ctx.origin })
 
                 // 告诉浏览器用的lang
                 // ctx.set('Content-Language', lang)
