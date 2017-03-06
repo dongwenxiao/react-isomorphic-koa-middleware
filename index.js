@@ -15,6 +15,7 @@ const CLIENT_DEV_PORT = argv.cport ? argv.cport : CLIENT_DEV_DEFAULT_PORT
 let htmlExtends = resetHtmlExtends()
 function resetHtmlExtends() {
     return {
+        title: '',
         meta: []
     }
 }
@@ -90,6 +91,8 @@ function renderHtml(html, state, template, distPathName = 'dist', fnJsLink) {
         return metaStr
     }).join('')
 
+    let title = htmlExtends.title || 'App Title'
+
 
     function filterStyle(htmlString) {
         let styleCollectionString = htmlString.replace(/\r\n/gi, '').replace(/\n/gi, '').match(/<div id="styleCollection(.*?)>(.*?)<\/div>/gi)[0]
@@ -112,7 +115,7 @@ function renderHtml(html, state, template, distPathName = 'dist', fnJsLink) {
             <head>
                 <meta charset="UTF-8">
                 <script>//inject_meta</script>
-                <title>React Template</title>
+                <title><script>//inject_title</script></title>
                 <script>//inject_component_styles</script>
             </head>
 
@@ -148,6 +151,7 @@ function renderHtml(html, state, template, distPathName = 'dist', fnJsLink) {
     // 返回给浏览器的html
     const responseHtml = template
         .replace('<script>//inject_component_styles</script>', styles)
+        .replace('<script>//inject_title</script>', title)
         .replace('<script>//inject_meta</script>', metas)
         .replace('<script>//inject_html</script>', html)
         .replace('<script>//inject_redux_state</script>', reduxState)
