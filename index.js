@@ -4,6 +4,7 @@ import { createMemoryHistory, RouterContext, match } from 'react-router'
 import { Provider } from 'react-redux'
 import { syncHistoryWithStore } from 'react-router-redux'
 import { CHANGE_LANGUAGE, TELL_ME_URL } from 'sp-base/client'
+import { dispatchInitFromState as i18nDispatch } from 'sp-i18n'
 
 
 // 客户端开发环境webpack-dev-server端口号
@@ -70,29 +71,21 @@ const extendHtml = (store, renderProps) => {
  *
  * @param {any} react渲染的html
  * @param {any} state 处理后的redux默认状态
- * @param {any} template html模板
- * @param {string} [distPathName='dist'] 引用js中间目录名，多项目可配置不同目录
+ * @param {object} settings html模板设置
  * @returns 最终返回浏览器的html
  */
-function renderHtml(html, state, template, distPathName = 'dist', fnJsLink) {
+// function renderHtml(html, state, template, distPathName = 'dist', fnInjectJs, objInjection = {}) {
+function renderHtml(html, state, settings = {}) {
 
-    // 样式处理
-    let htmlObj = filterStyle(html)
-    html = htmlObj.html
-    let styles = htmlObj.styles
+    let options = Object.assign({
+        // routes: {},
+        // configStore: {},
+        // template: '',
+        distPathName: 'dist',
+        injection: {}
+    }, settings)
 
-    // header 的 meta 生成
-    let metas = htmlExtends.meta.map((meta) => {
-        let metaStr = '<meta'
-        for (var key in meta) {
-            metaStr += ` ${key}="${meta[key]}"`
-        }
-        metaStr += '>'
-        return metaStr
-    }).join('')
-
-    let title = htmlExtends.title || 'App Title'
-
+    let { template, distPathName, injection } = options
 
     function filterStyle(htmlString) {
         let styleCollectionString = htmlString.replace(/\r\n/gi, '').replace(/\n/gi, '').match(/<div id="styleCollection(.*?)>(.*?)<\/div>/gi)[0]
@@ -106,6 +99,28 @@ function renderHtml(html, state, template, distPathName = 'dist', fnJsLink) {
             styles: onlyStyle
         }
     }
+
+    // 样式处理
+    if (typeof injection.html === 'undefined' || typeof injection.styles === 'undefined') {
+        let htmlObj = filterStyle(html)
+        if (typeof injection.html === 'undefined') injection.html = htmlObj.html
+        if (typeof injection.styles === 'undefined') injection.styles = htmlObj.styles
+    }
+
+    // header 的 meta 生成
+    if (typeof injection.meta === 'undefined')
+        injection.meta = htmlExtends.meta.map((meta) => {
+            let metaStr = '<meta'
+            for (var key in meta) {
+                metaStr += ` ${key}="${meta[key]}"`
+            }
+            metaStr += '>'
+            return metaStr
+        }).join('')
+
+    if (typeof injection.title === 'undefined')
+        injection.title = htmlExtends.title || 'App Title'
+
 
     if (template === undefined) {
         template = `
@@ -134,34 +149,48 @@ function renderHtml(html, state, template, distPathName = 'dist', fnJsLink) {
     }
 
     // 序列化的redux状态
-    const reduxState = `<script>window.__REDUX_STATE__ = ${JSON.stringify(state)};</script>`
+    if (typeof injection.redux_state === 'undefined')
+        injection.redux_state = `<script>window.__REDUX_STATE__ = ${JSON.stringify(state)};</script>`
 
     // 跟进环境，注入的js链接
-    if (typeof fnJsLink === 'undefined')
-        fnJsLink = (url, entryName = 'client') => `<script src="${url}${entryName}.js"></script>`
-    const jsLink = ((isDev) => {
-        if (isDev) return fnJsLink(`http://localhost:${CLIENT_DEV_PORT}/${distPathName}/`, 'client')
-        else return fnJsLink("/client/", 'client')
-    })(__DEV__)
-    // const jsLink = ((isDev) => {
-    //     if (isDev) return `<script src="http://localhost:${CLIENT_DEV_PORT}/${distPathName}/client.js"></script>`
-    //     else return '<script src="/client/client.js"></script>'
-    // })(__DEV__)
+    if (typeof injection.js === 'undefined')
+        injection.js = (args) => `<script src="${args.path}/client.js"></script>`
 
     // 返回给浏览器的html
-    const responseHtml = template
-        .replace('<script>//inject_component_styles</script>', styles)
-        .replace('<script>//inject_title</script>', title)
-        .replace('<script>//inject_meta</script>', metas)
-        .replace('<script>//inject_html</script>', html)
-        .replace('<script>//inject_redux_state</script>', reduxState)
-        .replace('<script>//inject_js</script>', jsLink)
+    const injection_html = injection.html
+    delete injection.html
+
+    let responseHtml = template
+
+    for (let key in injection) {
+        let value = injection[key]
+        if (typeof value === 'function')
+            value = value({
+                path: __DEV__ ? `http://localhost:${CLIENT_DEV_PORT}/${distPathName}` : "/client"
+            })
+        responseHtml = responseHtml.replace(`<script>//inject_${key}</script>`, value)
+    }
+
+    responseHtml = responseHtml.replace(`<script>//inject_html</script>`, injection_html)
 
     return responseHtml
 }
 
 
-export default function (routes, configStore, template, distPathName, fnJsLink) {
+// export default function (routes, configStore, template, distPathName, fnInjectJs) {
+function isomorphic(options = {}) {
+    if (!(typeof options === 'object' && options.template))
+        return isomorphic({
+            routes: arguments[0],
+            configStore: arguments[1],
+            template: arguments[2],
+            distPathName: arguments[3],
+            injection: {
+                js: arguments[4]
+            }
+        })
+
+    let { routes, configStore } = options
 
     return async (ctx, next) => {
 
@@ -193,6 +222,7 @@ export default function (routes, configStore, template, distPathName, fnJsLink) 
 
                 store.dispatch({ type: CHANGE_LANGUAGE, data: lang })
                 store.dispatch({ type: TELL_ME_URL, data: ctx.origin })
+                i18nDispatch(store.getState(), store.dispatch)
 
                 // 告诉浏览器用的lang
                 // ctx.set('Content-Language', lang)
@@ -208,12 +238,10 @@ export default function (routes, configStore, template, distPathName, fnJsLink) 
                     renderToString(
                         <Provider store={store}>
                             <RouterContext {...renderProps } />
-                        </Provider >
+                        </Provider>
                     ),
                     store.getState(),
-                    template,
-                    distPathName,
-                    fnJsLink
+                    options
                 )
             } else {
                 await next()
@@ -226,3 +254,5 @@ export default function (routes, configStore, template, distPathName, fnJsLink) 
         }
     }
 }
+
+export default isomorphic
