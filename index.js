@@ -4,7 +4,10 @@ import { createMemoryHistory, RouterContext, match } from 'react-router'
 import { Provider } from 'react-redux'
 import { syncHistoryWithStore } from 'react-router-redux'
 import { CHANGE_LANGUAGE, TELL_ME_URL } from 'sp-base/client'
-import { dispatchInitFromState as i18nDispatch } from 'sp-i18n'
+import {
+    actionInit as i18nActionInit,
+    actionLocales as i18nActionLocales
+} from 'sp-i18n'
 
 
 // 客户端开发环境webpack-dev-server端口号
@@ -222,7 +225,8 @@ function isomorphic(options = {}) {
 
                 store.dispatch({ type: CHANGE_LANGUAGE, data: lang })
                 store.dispatch({ type: TELL_ME_URL, data: ctx.origin })
-                i18nDispatch(store.getState(), store.dispatch)
+                store.dispatch( i18nActionInit(store.getState()) )
+                store.dispatch( i18nActionLocales() )
 
                 // 告诉浏览器用的lang
                 // ctx.set('Content-Language', lang)
