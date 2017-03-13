@@ -107,10 +107,10 @@ function renderHtml(html, state, settings = {}) {
     }
 
     // 样式处理
-    if (typeof injection.html === 'undefined' || typeof injection.styles === 'undefined') {
+    if (typeof injection.html === 'undefined' || typeof injection.component_styles === 'undefined') {
         let htmlObj = filterStyle(html)
         if (typeof injection.html === 'undefined') injection.html = htmlObj.html
-        if (typeof injection.styles === 'undefined') injection.styles = htmlObj.styles
+        if (typeof injection.component_styles === 'undefined') injection.component_styles = htmlObj.styles
     }
 
     // header 的 meta 生成
