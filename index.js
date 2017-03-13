@@ -88,7 +88,10 @@ function renderHtml(html, state, settings = {}) {
         injection: {}
     }, settings)
 
-    let { template, distPathName, injection } = options
+    // return template
+
+    let { template, distPathName } = options
+    let injection = Object.assign({}, options.injection)
 
     function filterStyle(htmlString) {
         let styleCollectionString = htmlString.replace(/\r\n/gi, '').replace(/\n/gi, '').match(/<div id="styleCollection(.*?)>(.*?)<\/div>/gi)[0]
