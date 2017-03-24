@@ -80,6 +80,12 @@ const extendHtml = (store, renderProps) => {
 // function renderHtml(html, state, template, distPathName = 'dist', fnInjectJs, objInjection = {}) {
 function renderHtml(html, state, settings = {}) {
 
+    // 清除settings里的空或未定义项
+    for (let i in settings) {
+        if (typeof settings[i] === 'undefined' || settings[i] === null)
+            delete settings[i]
+    }
+
     let options = Object.assign({
         // routes: {},
         // configStore: {},
@@ -172,7 +178,7 @@ function renderHtml(html, state, settings = {}) {
         let value = injection[key]
         if (typeof value === 'function')
             value = value({
-                path: __DEV__ ? `http://localhost:${CLIENT_DEV_PORT}/${distPathName}` : "/client"
+                path: __DEV__ ? `http://localhost:${CLIENT_DEV_PORT}/${distPathName}` : `/${distPathName}`
             })
         responseHtml = responseHtml.replace(`<script>//inject_${key}</script>`, value)
     }
@@ -228,8 +234,8 @@ function isomorphic(options = {}) {
 
                 store.dispatch({ type: CHANGE_LANGUAGE, data: lang })
                 store.dispatch({ type: TELL_ME_URL, data: ctx.origin })
-                store.dispatch( i18nActionInit(store.getState()) )
-                store.dispatch( i18nActionLocales() )
+                store.dispatch(i18nActionInit(store.getState()))
+                store.dispatch(i18nActionLocales())
 
                 // 告诉浏览器用的lang
                 // ctx.set('Content-Language', lang)
