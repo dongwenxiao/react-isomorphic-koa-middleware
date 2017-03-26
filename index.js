@@ -178,7 +178,7 @@ function renderHtml(html, state, settings = {}) {
         let value = injection[key]
         if (typeof value === 'function')
             value = value({
-                path: __DEV__ ? `http://localhost:${CLIENT_DEV_PORT}/${distPathName}` : `/${distPathName}`
+                path: __DEV__ ? `http://localhost:${CLIENT_DEV_PORT}/${distPathName}` : `/client`
             })
         responseHtml = responseHtml.replace(`<script>//inject_${key}</script>`, value)
     }

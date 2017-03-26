@@ -1,6 +1,6 @@
 {
   "name": "sp-react-isomorphic",
-  "version": "1.9.3",
+  "version": "1.9.4",
   "description": "Koa middleware use for server render react(redux).",
   "main": "index.js",
   "scripts": {
