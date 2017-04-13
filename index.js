@@ -13,7 +13,13 @@ import {
 // 客户端开发环境webpack-dev-server端口号
 const argv = require('yargs').argv
 const CLIENT_DEV_DEFAULT_PORT = 3001
-const CLIENT_DEV_PORT = argv.cport ? argv.cport : CLIENT_DEV_DEFAULT_PORT
+const CLIENT_DEV_PORT = (()=>{
+    let port = CLIENT_DEV_DEFAULT_PORT
+    if(argv.cport) port = argv.cport
+    if(process.env.CPORT) port = process.env.CPORT
+    return port
+})()
+
 
 // html扩展用的临时变量
 let htmlExtends = resetHtmlExtends()

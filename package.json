@@ -1,27 +1,27 @@
 {
-  "name": "sp-react-isomorphic",
-  "version": "1.9.4",
-  "description": "Koa middleware use for server render react(redux).",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/dongwenxiao/sp-react-isomorphic.git"
-  },
-  "keywords": [
-    "koa-middleware",
-    "react-isomorphic",
-    "react-server-render"
-  ],
-  "author": "cs_victor@126.com",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/dongwenxiao/sp-react-isomorphic/issues"
-  },
-  "homepage": "https://github.com/dongwenxiao/sp-react-isomorphic",
-  "dependencies": {
-    "sp-i18n": "~1.1.0"
-  }
+    "name": "sp-react-isomorphic",
+    "version": "1.10.0",
+    "description": "Koa middleware use for server render react(redux).",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/dongwenxiao/sp-react-isomorphic.git"
+    },
+    "keywords": [
+        "koa-middleware",
+        "react-isomorphic",
+        "react-server-render"
+    ],
+    "author": "cs_victor@126.com",
+    "license": "Apache-2.0",
+    "bugs": {
+        "url": "https://github.com/dongwenxiao/sp-react-isomorphic/issues"
+    },
+    "homepage": "https://github.com/dongwenxiao/sp-react-isomorphic",
+    "dependencies": {
+        "sp-i18n": "~1.1.0"
+    }
 }
