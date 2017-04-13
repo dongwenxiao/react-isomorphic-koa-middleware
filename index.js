@@ -69,6 +69,7 @@ const extendHtml = (store, renderProps) => {
     }
 }
 
+let distFiles = {}
 /**
  * 合成返回给浏览器的完整html代码
  *
@@ -98,6 +99,13 @@ function renderHtml(html, state, settings = {}) {
 
     let { template, distPathName } = options
     let injection = Object.assign({}, options.injection)
+
+    // 针对非开发环境，获取打包目录下的所有文件列表
+    if (!distFiles[distPathName] && !__DEV__) {
+        const fs = require('fs')
+        const path = require('path')
+        distFiles[distPathName] = fs.readdirSync(path.resolve(distPathName, 'public/client'))
+    }
 
     function filterStyle(htmlString) {
         let styleCollectionString = htmlString.replace(/\r\n/gi, '').replace(/\n/gi, '').match(/<div id="styleCollection(.*?)>(.*?)<\/div>/gi)[0]
@@ -166,7 +174,7 @@ function renderHtml(html, state, settings = {}) {
 
     // 跟进环境，注入的js链接
     if (typeof injection.js === 'undefined')
-        injection.js = (args) => `<script src="${args.path}/client.js"></script>`
+        injection.js = (args) => `<script src="${args.path}/${getInjectionJsFilename('client', distPathName)}"></script>`
 
     // 返回给浏览器的html
     const injection_html = injection.html
@@ -178,7 +186,9 @@ function renderHtml(html, state, settings = {}) {
         let value = injection[key]
         if (typeof value === 'function')
             value = value({
-                path: __DEV__ ? `http://localhost:${CLIENT_DEV_PORT}/${distPathName}` : `/client`
+                path: __DEV__ ? `http://localhost:${CLIENT_DEV_PORT}/${distPathName}` : `/client`,
+                distPathName: distPathName,
+                distFiles: distFiles[distPathName]
             })
         responseHtml = responseHtml.replace(`<script>//inject_${key}</script>`, value)
     }
@@ -186,6 +196,21 @@ function renderHtml(html, state, settings = {}) {
     responseHtml = responseHtml.replace(`<script>//inject_html</script>`, injection_html)
 
     return responseHtml
+}
+
+
+let distJs = {}
+export const getInjectionJsFilename = (name, distPathName) => {
+    if (!distFiles[distPathName]) return name + '.js'
+    if (!distJs[name]) distJs[name] = {}
+    if (!distJs[name][distPathName]) {
+        distJs[name][distPathName] = name + '.js'
+        distFiles[distPathName].forEach((f) => {
+            var regexp = new RegExp(`^${name}\.([^.]+).js$`)
+            if (regexp.test(f)) distJs[name][distPathName] = f
+        })
+    }
+    return distJs[name][distPathName]
 }
 
 
