@@ -233,6 +233,7 @@ function isomorphic(options = {}) {
             }
         })
 
+    // TODO: 尝试解决闭包内存泄漏
     let { routes, configStore } = options
 
     return async (ctx, next) => {
@@ -263,6 +264,7 @@ function isomorphic(options = {}) {
                     lang = 'en'
                 }
 
+                // TODO: 修改成统一派发 CHANGE_SERVER_DATA
                 store.dispatch({ type: CHANGE_LANGUAGE, data: lang })
                 store.dispatch({ type: TELL_ME_URL, data: ctx.origin })
                 store.dispatch(i18nActionInit(store.getState()))
