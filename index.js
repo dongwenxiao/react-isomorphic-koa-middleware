@@ -8,15 +8,16 @@ import {
     actionInit as i18nActionInit,
     actionLocales as i18nActionLocales
 } from 'sp-i18n'
+import injectionPWA from 'sp-pwa/injection'
 
 
 // 客户端开发环境webpack-dev-server端口号
 const argv = require('yargs').argv
 const CLIENT_DEV_DEFAULT_PORT = 3001
-const CLIENT_DEV_PORT = (()=>{
+const CLIENT_DEV_PORT = (() => {
     let port = CLIENT_DEV_DEFAULT_PORT
-    if(argv.cport) port = argv.cport
-    if(process.env.CPORT) port = process.env.CPORT
+    if (argv.cport) port = argv.cport
+    if (process.env.CPORT) port = process.env.CPORT
     return port
 })()
 
@@ -181,6 +182,9 @@ function renderHtml(html, state, settings = {}) {
     // 跟进环境，注入的js链接
     if (typeof injection.js === 'undefined')
         injection.js = (args) => `<script src="${args.path}/${getInjectionJsFilename('client', distPathName)}"></script>`
+
+    if (typeof injection.pwa === 'undefined')
+        injection.pwa = injectionPWA
 
     // 返回给浏览器的html
     const injection_html = injection.html

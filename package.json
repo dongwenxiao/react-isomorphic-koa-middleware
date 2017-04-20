@@ -22,6 +22,7 @@
     },
     "homepage": "https://github.com/dongwenxiao/sp-react-isomorphic",
     "dependencies": {
-        "sp-i18n": "~1.1.0"
+        "sp-i18n": "~1.1.0",
+        "sp-pwa": "~1.0.0"
     }
 }
