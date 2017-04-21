@@ -8,7 +8,6 @@ import {
     actionInit as i18nActionInit,
     actionLocales as i18nActionLocales
 } from 'sp-i18n'
-import injectionPWA from 'sp-pwa/injection'
 
 
 // 客户端开发环境webpack-dev-server端口号
@@ -184,8 +183,10 @@ function renderHtml(html, state, settings = {}) {
         injection.js = (args) => `<script src="${args.path}/${getInjectionJsFilename('client', distPathName)}"></script>`
 
     if (typeof injection.pwa === 'undefined')
-        injection.pwa = injectionPWA
-
+        injection.pwa = require('sp-pwa/injection').default
+    if (typeof injection.pwa_filename === 'undefined')
+        injection.pwa_filename = require('sp-pwa/injection-filename').default
+        
     // 返回给浏览器的html
     const injection_html = injection.html
     delete injection.html
