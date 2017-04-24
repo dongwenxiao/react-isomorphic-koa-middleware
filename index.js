@@ -98,12 +98,13 @@ function renderHtml(html, state, settings = {}) {
         // configStore: {},
         // template: '',
         distPathName: 'dist',
+        distPublicPathName: 'dist',
         injection: {}
     }, settings)
 
     // return template
 
-    let { template, distPathName } = options
+    let { template, distPathName, distPublicPathName } = options
     let injection = Object.assign({}, options.injection)
 
     // 针对非开发环境，获取打包目录下的所有文件列表
@@ -197,7 +198,7 @@ function renderHtml(html, state, settings = {}) {
         let value = injection[key]
         if (typeof value === 'function')
             value = value({
-                path: __DEV__ ? `http://localhost:${CLIENT_DEV_PORT}/${distPathName}` : `/client`,
+                path: __DEV__ ? `http://localhost:${CLIENT_DEV_PORT}/${distPublicPathName}` : `/client`,
                 distPathName: distPathName,
                 distFiles: distFiles[distPathName]
             })
