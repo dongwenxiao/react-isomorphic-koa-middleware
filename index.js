@@ -75,6 +75,7 @@ const extendHtml = (store, renderProps) => {
     }
 }
 
+let _distPathName
 let distFiles = {}
 /**
  * 合成返回给浏览器的完整html代码
@@ -106,6 +107,7 @@ function renderHtml(html, state, settings = {}) {
 
     let { template, distPathName, distPublicPathName } = options
     let injection = Object.assign({}, options.injection)
+    _distPathName = distPathName
 
     // 针对非开发环境，获取打包目录下的所有文件列表
     if (!distFiles[distPathName] && !__DEV__) {
@@ -212,7 +214,7 @@ function renderHtml(html, state, settings = {}) {
 
 
 let distJs = {}
-export const getInjectionJsFilename = (name, distPathName) => {
+export const getInjectionJsFilename = (name, distPathName = _distPathName) => {
     if (!distFiles[distPathName]) return name + '.js'
     if (!distJs[name]) distJs[name] = {}
     if (!distJs[name][distPathName]) {
