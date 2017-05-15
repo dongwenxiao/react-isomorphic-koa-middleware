@@ -248,7 +248,7 @@ function isomorphic(options = {}) {
 
         try {
             const memoryHistory = createMemoryHistory(ctx.url)
-            const store = configStore(memoryHistory)
+            const store = configStore(/*memoryHistory*/) // fix redux warring
             const history = syncHistoryWithStore(memoryHistory, store)
             const { redirectLocation, renderProps } = await asyncMatch({ history, routes, location: ctx.url })
 
