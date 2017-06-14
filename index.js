@@ -8,6 +8,7 @@ import {
     actionInit as i18nActionInit,
     actionLocales as i18nActionLocales
 } from 'sp-i18n'
+import cookie from 'cookie'
 
 
 // 客户端开发环境webpack-dev-server端口号
@@ -189,7 +190,7 @@ function renderHtml(html, state, settings = {}) {
         injection.pwa = require('sp-pwa/injection').default
     if (typeof injection.pwa_filename === 'undefined')
         injection.pwa_filename = require('sp-pwa/injection-filename').default
-        
+
     // 返回给浏览器的html
     const injection_html = injection.html
     delete injection.html
@@ -255,6 +256,7 @@ function isomorphic(options = {}) {
             if (redirectLocation) {
                 ctx.redirect(redirectLocation.pathname + redirectLocation.search)
             } else if (renderProps) {
+                const cookies = cookie.parse(ctx.request.header.cookie || '')
 
                 // 准备语言到store中
 
@@ -262,15 +264,15 @@ function isomorphic(options = {}) {
                 // hl 这个参数名是参考了Instargram
                 let lang = ctx.query.hl
 
+                // 如果没有，检查cookie
+                if (!lang && cookies.spLocaleId)
+                    lang = cookies.spLocaleId
                 // 如果没有，再看header里是否有语言设置
-                if (!lang) {
+                if (!lang)
                     lang = ctx.header['accept-language']
-                }
-
                 // 如没有，再用默认
-                if (!lang) {
+                if (!lang)
                     lang = 'en'
-                }
 
                 // TODO: 修改成统一派发 CHANGE_SERVER_DATA
                 store.dispatch({ type: CHANGE_LANGUAGE, data: lang })

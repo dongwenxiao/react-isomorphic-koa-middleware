@@ -1,6 +1,6 @@
 {
     "name": "sp-react-isomorphic",
-    "version": "1.13.0",
+    "version": "1.14.0",
     "description": "Koa middleware use for server render react(redux).",
     "main": "index.js",
     "scripts": {
@@ -21,8 +21,11 @@
         "url": "https://github.com/dongwenxiao/sp-react-isomorphic/issues"
     },
     "homepage": "https://github.com/dongwenxiao/sp-react-isomorphic",
+    "dependencies": {
+        "cookie": "^0.3.1"
+    },
     "peerDependencies": {
-        "sp-i18n": "^1.2.0",
+        "sp-i18n": "^1.4.0",
         "sp-pwa": "^1.6.0"
     }
 }
